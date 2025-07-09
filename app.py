@@ -63,5 +63,36 @@ def read_user(id_user):
     
     return jsonify({"message": "User not found."}), 404
 
+
+@app.route('/user/<int:id_user>', methods={'PUT'})
+@login_required
+def update_user(id_user):
+    data = request.json
+    user = User.query.get(id_user)
+
+    if user and data.get("password"):
+        user.password = data.get("password")
+        
+        db.session.commit()
+
+        return jsonify({"message": f"User {id_user} password was sucessfully updated."})
+    
+    return jsonify({"message": "User not found."}), 404
+
+@app.route('/user/<int:id_user>', methods={'DELETE'})
+@login_required
+def delete_user(id_user):
+    user = User.query.get(id_user)
+    
+    if id_user == current_user.id:
+        return jsonify({"message": "Current user is not allowed to delete itself."}), 403
+    
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": f"User {id_user} deleted."})
+    
+    return jsonify({"message": "User not found."}), 404
+
 if __name__ == '__main__':
     app.run(debug=True)
